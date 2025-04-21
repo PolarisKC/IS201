@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Snake</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #1e3c72, #2a5298);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+        canvas {
+            border: 2px solid #ffd700;
+            background: url('https://images.pexels.com/photos/956981/milky-way-starry-sky-night-sky-star-956981.jpeg');
+            background-size: cover;
+        }
+        #score, #highScore {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+        #pauseButton {
+            background: #ffd700;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px;
+        }
+        #pauseButton:hover {
+            background: #e6c200;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 50, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+        }
+        .menu button {
+            background: #ffd700;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .menu button:hover {
+            background: #e6c200;
+        }
+        a {
+            color: #ffd700;
+            text-decoration: none;
+            display: block;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Star Snake</h1>
+        <div id="score">Score: 0</div>
+        <div id="highScore">High Score: 0</div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <br>
+        <button id="pauseButton">Pause</button>
+        <div id="pauseMenu" class="menu">
+            <h2>Paused</h2>
+            <button onclick="resumeGame()">Resume</button>
+            <button onclick="quitGame()">Quit</button>
+        </div>
+        <div id="gameOverMenu" class="menu">
+            <h2>Game Over</h2>
+            <p id="finalScore"></p>
+            <button onclick="resetGame()">Reset</button>
+            <button onclick="quitGame()">Quit</button>
+        </div>
+        <a href="scratch.html">Back to Scratch Page (Try Quitting)</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let snake = [{ x: 10, y: 10 }];
+        let planet = { x: 15, y: 15 };
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let highScore = 0;
+        let gameLoop;
+        let isPaused = false;
+        let gameOver = false;
+
+        // Planet image
+        const planetImg = new Image();
+        planetImg.src = 'https://img.freepik.com/premium-vector/pixel-art-mars-planet-icon_41992-1958.jpg';
+
+        // Snake head image
+        const snakeHeadImg = new Image();
+        snakeHeadImg.src = 'https://i.pinimg.com/236x/03/c7/2a/03c72a9aa3564211fdaeb9a99b1ed0ef.jpg';
+
+        function drawGame() {
+            if (gameOver || isPaused) return;
+
+            // Move snake
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            // Check if planet is eaten
+            if (head.x === planet.x && head.y === planet.y) {
+                score += 100;
+                document.getElementById('score').textContent = `Score: ${score}`;
+                generatePlanet();
+            } else {
+                snake.pop();
+            }
+
+            // Check collisions
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y)) {
+                endGame();
+                return;
+            }
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw snake
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    // Try drawing image, fallback to rectangle if image not loaded
+                    if (snakeHeadImg.complete && snakeHeadImg.naturalWidth !== 0) {
+                        ctx.drawImage(snakeHeadImg, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                    } else {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+                        console.log('Snake head image not loaded, using fallback');
+                    }
+                } else {
+                    ctx.fillStyle = '#6300dd';
+                    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+                }
+            });
+
+            // Draw planet
+            if (planetImg.complete && planetImg.naturalWidth !== 0) {
+                ctx.drawImage(planetImg, planet.x * gridSize, planet.y * gridSize, gridSize, gridSize);
+            } else {
+                ctx.fillStyle = '#ff4500';
+                ctx.fillRect(planet.x * gridSize, planet.y * gridSize, gridSize - 2, gridSize - 2);
+                console.log('Planet image not loaded, using fallback');
+            }
+        }
+
+        function generatePlanet() {
+            planet.x = Math.floor(Math.random() * tileCount);
+            planet.y = Math.floor(Math.random() * tileCount);
+            if (snake.some(segment => segment.x === planet.x && segment.y === planet.y)) {
+                generatePlanet();
+            }
+        }
+        
+        function handleKeyPress(e) {
+            if (gameOver || isPaused) return;
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (dy !== 1) { dx = 0; dy = -1; }
+                    break;
+                case 'ArrowDown':
+                    if (dy !== -1) { dx = 0; dy = 1; }
+                    break;
+                case 'ArrowLeft':
+                    if (dx !== 1) { dx = -1; dy = 0; }
+                    break;
+                case 'ArrowRight':
+                    if (dx !== -1) { dx = 1; dy = 0; }
+                    break;
+            }
+        }
+
+        function pauseGame() {
+            isPaused = true;
+            clearInterval(gameLoop);
+            document.getElementById('pauseMenu').style.display = 'block';
+        }
+
+        function resumeGame() {
+            isPaused = false;
+            document.getElementById('pauseMenu').style.display = 'none';
+            gameLoop = setInterval(drawGame, 100);
+        }
+
+        function resetGame() {
+            snake = [{ x: 10, y: 10 }];
+            planet = { x: 15, y: 15 };
+            dx = 0;
+            dy = 0;
+            score = 0;
+            document.getElementById('score').textContent = `Score: ${score}`;
+            gameOver = false;
+            document.getElementById('gameOverMenu').style.display = 'none';
+            gameLoop = setInterval(drawGame, 100);
+        }
+
+        function endGame() {
+            gameOver = true;
+            clearInterval(gameLoop);
+            highScore = Math.max(highScore, score);
+            document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            document.getElementById('gameOverMenu').style.display = 'block';
+        }
+
+        function quitGame() {
+            window.location.href = 'scratch.html';
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', handleKeyPress);
+        document.getElementById('pauseButton').addEventListener('click', pauseGame);
+
+        // Start game after images load
+        let imagesLoaded = 0;
+        const totalImages = 2;
+
+        function checkImagesLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                console.log('All images loaded, starting game');
+                gameLoop = setInterval(drawGame, 100);
+            }
+        }
+
+        planetImg.onload = checkImagesLoaded;
+        snakeHeadImg.onload = checkImagesLoaded;
+
+        // Handle image load errors
+        planetImg.onerror = () => {
+            console.error('Failed to load planet image');
+            checkImagesLoaded();
+        };
+        snakeHeadImg.onerror = () => {
+            console.error('Failed to load snake head image');
+            checkImagesLoaded();
+        };
+    </script>
+</body>
+</html>

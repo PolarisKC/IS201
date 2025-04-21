@@ -1,0 +1,68 @@
+body {
+    font-family: 'Georgia', serif;
+    color: #ffffff;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/The_spectacular_star-forming_Carina_Nebula_imaged_by_the_VLT_Survey_Telescope.jpg/1280px-The_spectacular_star-forming_Carina_Nebula_imaged_by_the_VLT_Survey_Telescope.jpg?20180817012603');
+    background-size: cover;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    background: rgba(0, 0, 50, 0.7);
+    padding: 20px;
+    text-align: center;
+}
+
+nav a {
+    color: #00ccff;
+    margin: 0 10px;
+}
+
+nav a:hover {
+    font-size: large;
+    font-weight: bold;
+}
+
+.intro {
+    background: rgba(0, 0, 50, 0.7);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.content {
+    background: rgba(0, 0, 50, 0.7);
+    padding: 20px;
+    text-align: center;
+}
+
+.content2 {
+    background: rgba(0, 0, 50, 0.7);
+    padding: 20px;
+    padding-left: 40%;
+}
+
+h1, h2, h3 {
+    color: #00ccff;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0, 0, 50, 0.7);
+    margin-top: 20px;
+}
+
+main a {
+    color: #00ccff;
+    text-decoration: underline;
+}
+
+main a:hover {
+    font-size: large;
+    font-weight: bold;
+}
+
+.tableauframe {
+    padding-left: 25%;
+}
